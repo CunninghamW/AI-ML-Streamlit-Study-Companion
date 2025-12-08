@@ -1,0 +1,24 @@
+# Python virtual environment
+venv/
+
+# Byte-compiled / cached files
+__pycache__/
+*.py[cod]
+
+# Distribution / packaging
+*.egg
+*.egg-info/
+dist/
+build/
+*.whl
+
+# Models & datasets (optional, if you want to ignore large files)
+models/
+CSV/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE / editor folders 
+.vscode/
