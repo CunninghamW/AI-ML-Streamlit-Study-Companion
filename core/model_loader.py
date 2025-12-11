@@ -11,7 +11,7 @@ class ModelLoader:
         self.model_dir = "models"
 
         self._ensure_model_dir()
-        self.pd.read_csv('CSV/SoftwareQuestions_preprocessed.csv')
+        self.df = pd.read_csv(self.csv_path)
 
         self.vectorizer = None
         self.question_vectors = None
@@ -20,11 +20,11 @@ class ModelLoader:
         self.load_or_train_models()
         
 
-    def _ensure_model_dir():
+    def _ensure_model_dir(self):
         if not os.path.exists(self.model_dir):
             os.makedirs(self.model_dir)
 
-    def load_or_train_models():
+    def load_or_train_models(self):
         # set the file paths for saved models
         tfidf_path = f"{self.model_dir}/tfidf_vectorizer.pkl"
         vectors_path = f"{self.model_dir}/question_vectors.pkl"
@@ -38,15 +38,36 @@ class ModelLoader:
         else:
             # train TF-IDF on all questions
             self.vectorizer = TfidfVectorizer(max_features=5000)
-            self. question_vectors = self.vectorizer.fit_transform(self.df["Question"]) #fit_transform converts questions to numerical values
+            self.question_vectors = self.vectorizer.fit_transform(self.df["Question"]) #fit_transform converts questions to numerical values
             
             # save the vectorizer and vectors for use
             joblib.dump(self.vectorizer, tfidf_path)
             joblib.dump(self.question_vectors, vectors_path)
 
+        # if the model exists then load it
+        if os.path.exists(knn_path):
+            self.knn_model = joblib.load(knn_path)
+        
+        else:
+            # train NearestNeighbor on all TF-IDF vectors
+            self.knn_model = NearestNeighbors(n_neighbors=5, metric="cosine")
+            self.knn_model.fit(self.question_vectors)
+            
+            # save the trained KNN
+            joblib.dump(self.knn_model, knn_path)
 
-    def vectorize_question(question):
-        pass
+    def vectorize_question(self, question):
+        return self.vectorizer.transform([question])
 
-    def get_knn_model():
-        pass
+    def get_knn_model(self):
+        return self.knn_model
+    
+    def find_similar(self, user_question):
+        # convert the user question into TF-IDF vector
+        user_vec = self.vectorize_question(user_question)
+
+        # Get nearest neighbors
+        distances, indices = self.knn_model.kneighbors(user_vec)
+
+        # Return the actual question texts 
+        return [self.df["Question"].iloc[i] for i in indices[0]]
