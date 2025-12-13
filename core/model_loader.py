@@ -70,4 +70,5 @@ class ModelLoader:
         distances, indices = self.knn_model.kneighbors(user_vec)
 
         # Return the actual question texts 
-        return [self.df["Question"].iloc[i] for i in indices[0]]
+        similar_questions = [self.df["Question"].iloc[i] for i in indices[0]]
+        return similar_questions
